@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+</head>
+<body>
+    <script>
+        window.TrelloPowerUp.initialize({
+            'board-buttons': function (t, opts) {
+                return [{
+                    icon: 'https://example.com/icon.png',
+                    text: 'Mi Power-Up',
+                    callback: function (t) {
+                        return t.alert({
+                            message: "¡Hola desde mi Power-Up!"
+                        });
+                    }
+                }];
+            }
+        });
+    </script>
+</body>
+</html>
