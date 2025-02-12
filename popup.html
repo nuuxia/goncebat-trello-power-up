@@ -3,52 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Popup Goncebat</title>
-    <script src="https://p.trellocdn.com/power-up.min.js"></script>
-</head>
-<body>
-    <h1>¡Hola desde Goncebat Automation!</h1>
-    <p>Este es un popup de prueba en tu Power-Up.</p>
-
-    <script>
-        var t = window.TrelloPowerUp.iframe();  // 🔥 Se asegura de usar Trello Power-Up SDK correctamente
-
-        // Obtener datos del tablero desde Trello
-        t.get('board', 'shared')
-            .then(function(data) {
-                console.log("✅ Datos del tablero recibidos:", data);
-            })
-            .catch(function(error) {
-                console.error("❌ Error en la comunicación con Trello:", error);
-            });
-    </script>
-</body>
-</html>
-a<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ingresar Datos</title>
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
+    <link rel="stylesheet" href="styles.css"> <!-- Agrega el CSS externo -->
 </head>
 <body>
-    <h2>Ingresar Datos</h2>
-    <form id="dataForm">
-        <label>Fecha: <input type="date" id="fecha"></label><br>
-        <label>Origen: <input type="text" id="origen"></label><br>
-        <label>Cliente: <input type="text" id="cliente"></label><br>
-        <label>Cuenta: <input type="text" id="cuenta"></label><br>
-        <label>Palabras: <input type="number" id="palabras"></label><br>
-        <label>Ingreso: <input type="number" id="ingreso"></label><br>
-        <label>Egreso: <input type="number" id="egreso"></label><br>
-        <label>Cliente Pagó: <input type="number" id="clientePago"></label><br>
-        <label>Observación: <textarea id="observacion"></textarea></label><br>
-        <button type="submit">Guardar</button>
-    </form>
+    <div class="container">
+        <h2>Ingresar Datos</h2>
+        <form id="dataForm">
+            <label>Fecha: <input type="date" id="fecha"></label>
+            <label>Origen: <input type="text" id="origen"></label>
+            <label>Cliente: <input type="text" id="cliente"></label>
+            <label>Cuenta: <input type="text" id="cuenta"></label>
+            <label>Palabras: <input type="number" id="palabras"></label>
+            <label>Ingreso: <input type="number" id="ingreso"></label>
+            <label>Egreso: <input type="number" id="egreso"></label>
+            <label>Cliente Pagó: <input type="number" id="clientePago"></label>
+            <label>Observación: <textarea id="observacion"></textarea></label>
+            <button type="submit">Guardar</button>
+        </form>
+    </div>
 
     <script>
         var t = window.TrelloPowerUp.iframe();
+        const GOOGLE_SHEETS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxeE33CB1UP6JDLvbEEtBT7uXL84d13BJPdqPt4TQJvP35IYIPusTfErYpLp7ILqgm8eA/exec"; // Reemplázalo con tu URL real
 
         document.getElementById("dataForm").addEventListener("submit", function(event) {
             event.preventDefault();
@@ -65,7 +43,17 @@ a<!DOCTYPE html>
                 observacion: document.getElementById("observacion").value
             };
 
+            // Guardar en Trello
             t.set('card', 'private', 'datos', data).then(() => {
+                
+                // Enviar a Google Sheets
+                fetch(GOOGLE_SHEETS_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
                 t.closePopup();
             });
         });
