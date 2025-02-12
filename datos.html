@@ -1,32 +1,36 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Datos de la Tarjeta</title>
-    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <meta charset="UTF-8" />
+  <title>Datos de la Tarjeta</title>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="container">
     <h2>Datos Guardados</h2>
     <div id="datos"></div>
+  </div>
 
-    <script>
-        var t = window.TrelloPowerUp.iframe();
+  <script>
+    var t = window.TrelloPowerUp.iframe();
 
-        t.get('card', 'private', 'datos', {}).then(function(datos) {
-            var content = `
-                <p><strong>Fecha:</strong> ${datos.fecha || ''}</p>
-                <p><strong>Origen:</strong> ${datos.origen || ''}</p>
-                <p><strong>Cliente:</strong> ${datos.cliente || ''}</p>
-                <p><strong>Cuenta:</strong> ${datos.cuenta || ''}</p>
-                <p><strong>Palabras:</strong> ${datos.palabras || ''}</p>
-                <p><strong>Ingreso:</strong> ${datos.ingreso || ''}</p>
-                <p><strong>Egreso:</strong> ${datos.egreso || ''}</p>
-                <p><strong>Cliente Pagó:</strong> ${datos.clientePago || ''}</p>
-                <p><strong>Observación:</strong> ${datos.observacion || ''}</p>
-            `;
-            document.getElementById("datos").innerHTML = content;
-        });
-    </script>
+    // Leer los datos guardados en 'shared'
+    t.get('card', 'shared', 'datos', {})
+      .then(function(datos) {
+        var content = `
+          <p><strong>Fecha:</strong> ${datos.fecha || ''}</p>
+          <p><strong>Origen:</strong> ${datos.origen || ''}</p>
+          <p><strong>Cliente:</strong> ${datos.cliente || ''}</p>
+          <p><strong>Cuenta:</strong> ${datos.cuenta || ''}</p>
+          <p><strong>Palabras:</strong> ${datos.palabras || ''}</p>
+          <p><strong>Ingreso:</strong> ${datos.ingreso || ''}</p>
+          <p><strong>Egreso:</strong> ${datos.egreso || ''}</p>
+          <p><strong>Cliente Pagó:</strong> ${datos.clientePago || ''}</p>
+          <p><strong>Observación:</strong> ${datos.observacion || ''}</p>
+        `;
+        document.getElementById("datos").innerHTML = content;
+      });
+  </script>
 </body>
 </html>

@@ -1,52 +1,59 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Goncebat Automation</title>
-    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <meta charset="UTF-8" />
+  <title>Goncebat Automation - Power-Up</title>
+  <!-- Carga la librería de Trello Power-Up -->
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
 </head>
 <body>
-    <script>
-        var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp'; 
+  <script>
+    // URL del ícono que quieras mostrar en tu botón/sección
+    var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp';
 
-        window.TrelloPowerUp.initialize({
-            // ✅ Agregamos solo las funciones compatibles con Trello
-            'card-buttons': function (t, opts) {
-                return [{
-                    icon: ICON_URL,
-                    text: 'Ingresar Datos',
-                    callback: function (t) {
-                        return t.popup({
-                            title: "Ingresar Datos",
-                            url: t.signUrl('popup.html')
-                        });
-                    }
-                }];
+    // Inicializamos el Power-Up con las funciones que nos interesan
+    window.TrelloPowerUp.initialize({
+      // ---------- Botón en la tarjeta ----------
+      'card-buttons': async function(t, opts) {
+        // Solo mostramos el botón si el usuario puede editar el tablero
+        let canEditBoard = await t.memberCanWriteToModel('board');
+        if (!canEditBoard) {
+          return []; // Si NO puede, no devolvemos nada
+        }
+        return [
+          {
+            icon: ICON_URL,
+            text: 'Ingresar Datos',
+            callback: function(t) {
+              return t.popup({
+                title: "Ingresar Datos",
+                url: t.signUrl('popup.html'), // apunta a tu formulario
+              });
             },
+          },
+        ];
+      },
 
-            // ✅ Solo mostramos la sección en la tarjeta si el usuario es administrador
-            'card-back-section': function (t, opts) {
-                return t.get('member', 'private', 'isAdmin', false)
-                    .then(function (isAdmin) {
-                        if (isAdmin) {
-                            return {
-                                title: 'Datos de la Tarjeta',
-                                icon: ICON_URL,
-                                content: {
-                                    type: 'iframe',
-                                    url: t.signUrl('datos.html')
-                                }
-                            };
-                        }
-                        return null; // 🔥 IMPORTANTE: Evita errores devolviendo null
-                    });
-            },
+      // ---------- Sección en el reverso de la tarjeta ----------
+      'card-back-section': async function(t, opts) {
+        // Solo mostramos la sección si el usuario puede editar el tablero
+        let canEditBoard = await t.memberCanWriteToModel('board');
+        if (!canEditBoard) {
+          return null; // Si NO puede, no devolvemos la sección
+        }
+        return {
+          title: 'Datos de la Tarjeta',
+          icon: ICON_URL,
+          content: {
+            type: 'iframe',
+            url: t.signUrl('datos.html'), // página para mostrar los datos guardados
+            height: 250 // altura del iframe (puedes ajustarla)
+          }
+        };
+      }
+    });
 
-            // ✅ Eliminamos cualquier referencia a 'card-detail-badges'
-        });
-
-        console.log("✅ Power-Up Goncebat Automation cargado correctamente.");
-    </script>
+    console.log("✅ Power-Up Goncebat Automation cargado correctamente.");
+  </script>
 </body>
 </html>
