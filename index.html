@@ -1,67 +1,31 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Goncebat Automation</title>
-    <script src="https://p.trellocdn.com/power-up.min.js"></script>
-</head>
-<body>
-    <script>
-        var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp'; 
-
-        window.TrelloPowerUp.initialize({
-            // Botón en la tarjeta
-            'card-buttons': function (t, opts) {
-                return [{
-                    icon: ICON_URL,
-                    text: 'Ingresar Datos',
-                    callback: function (t) {
-                        return t.popup({
-                            title: "Ingresar Datos",
-                            url: t.signUrl('popup.html')
-                        });
-                    }
-                }];
-            },
-            
-            // Sección en la parte trasera de la tarjeta
-            'card-back-section': function (t, opts) {
-                return t.get('member', 'private', 'isAdmin', false)
-                    .then(function (isAdmin) {
-                        if (isAdmin) {
-                            return {
-                                title: 'Datos de la Tarjeta',
-                                icon: ICON_URL,
-                                content: {
-                                    type: 'iframe',
-                                    url: t.signUrl('datos.html')
-                                }
-                            };
-                        } else {
-                            return null;
-                        }
-                    });
-            },
-
-            // Verificación de permisos de administrador
-            'authorization-status': function (t) {
-                return t.get('member', 'private', 'isAdmin', false)
-                    .then(function (isAdmin) {
-                        return { authorized: isAdmin };
-                    });
-            },
-
-            'show-authorization': function (t) {
+window.TrelloPowerUp.initialize({
+    'card-buttons': function (t, opts) {
+        return [{
+            icon: ICON_URL,
+            text: 'Ingresar Datos',
+            callback: function (t) {
                 return t.popup({
-                    title: "Autorización requerida",
-                    url: t.signUrl('auth.html'),
-                    height: 140
+                    title: "Ingresar Datos",
+                    url: t.signUrl('popup.html')
                 });
             }
-        });
+        }];
+    },
 
-        console.log("✅ Power-Up Goncebat Automation cargado correctamente.");
-    </script>
-</body>
-</html>
+    'card-back-section': function (t, opts) {
+        return t.get('member', 'private', 'isAdmin', false)
+            .then(function (isAdmin) {
+                if (isAdmin) {
+                    return {
+                        title: 'Datos de la Tarjeta',
+                        icon: ICON_URL,
+                        content: {
+                            type: 'iframe',
+                            url: t.signUrl('datos.html')
+                        }
+                    };
+                }
+                return null; // 🔥 IMPORTANTE: Asegurar que no devuelve undefined
+            });
+    }
+});
