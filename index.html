@@ -11,7 +11,7 @@
         var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp'; 
 
         window.TrelloPowerUp.initialize({
-            // Botón en la tarjeta
+            // ✅ Agregamos solo las funciones compatibles con Trello
             'card-buttons': function (t, opts) {
                 return [{
                     icon: ICON_URL,
@@ -24,8 +24,8 @@
                     }
                 }];
             },
-            
-            // Sección en la parte trasera de la tarjeta
+
+            // ✅ Solo mostramos la sección en la tarjeta si el usuario es administrador
             'card-back-section': function (t, opts) {
                 return t.get('member', 'private', 'isAdmin', false)
                     .then(function (isAdmin) {
@@ -38,27 +38,12 @@
                                     url: t.signUrl('datos.html')
                                 }
                             };
-                        } else {
-                            return null;
                         }
+                        return null; // 🔥 IMPORTANTE: Evita errores devolviendo null
                     });
             },
 
-            // Verificación de permisos de administrador
-            'authorization-status': function (t) {
-                return t.get('member', 'private', 'isAdmin', false)
-                    .then(function (isAdmin) {
-                        return { authorized: isAdmin };
-                    });
-            },
-
-            'show-authorization': function (t) {
-                return t.popup({
-                    title: "Autorización requerida",
-                    url: t.signUrl('auth.html'),
-                    height: 140
-                });
-            }
+            // ✅ Eliminamos cualquier referencia a 'card-detail-badges'
         });
 
         console.log("✅ Power-Up Goncebat Automation cargado correctamente.");
