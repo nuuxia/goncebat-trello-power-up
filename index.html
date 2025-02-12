@@ -10,20 +10,54 @@
     <script>
         var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp'; 
 
-        // Inicializa el Power-Up y lo muestra en la barra superior del tablero
         window.TrelloPowerUp.initialize({
-            'board-buttons': function (t, opts) {
+            // Botón en la tarjeta
+            'card-buttons': function (t, opts) {
                 return [{
                     icon: ICON_URL,
-                    text: 'Goncebat Automation',
-                    condition: 'always', // 🔥 Asegura que siempre se muestre
+                    text: 'Ingresar Datos',
                     callback: function (t) {
                         return t.popup({
-                            title: "Goncebat Automation",
-                            url: t.signUrl('popup.html') 
+                            title: "Ingresar Datos",
+                            url: t.signUrl('popup.html')
                         });
                     }
                 }];
+            },
+            
+            // Sección en la parte trasera de la tarjeta
+            'card-back-section': function (t, opts) {
+                return t.get('member', 'private', 'isAdmin', false)
+                    .then(function (isAdmin) {
+                        if (isAdmin) {
+                            return {
+                                title: 'Datos de la Tarjeta',
+                                icon: ICON_URL,
+                                content: {
+                                    type: 'iframe',
+                                    url: t.signUrl('datos.html')
+                                }
+                            };
+                        } else {
+                            return null;
+                        }
+                    });
+            },
+
+            // Verificación de permisos de administrador
+            'authorization-status': function (t) {
+                return t.get('member', 'private', 'isAdmin', false)
+                    .then(function (isAdmin) {
+                        return { authorized: isAdmin };
+                    });
+            },
+
+            'show-authorization': function (t) {
+                return t.popup({
+                    title: "Autorización requerida",
+                    url: t.signUrl('auth.html'),
+                    height: 140
+                });
             }
         });
 

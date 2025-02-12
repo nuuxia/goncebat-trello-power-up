@@ -24,3 +24,51 @@
     </script>
 </body>
 </html>
+a<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingresar Datos</title>
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+</head>
+<body>
+    <h2>Ingresar Datos</h2>
+    <form id="dataForm">
+        <label>Fecha: <input type="date" id="fecha"></label><br>
+        <label>Origen: <input type="text" id="origen"></label><br>
+        <label>Cliente: <input type="text" id="cliente"></label><br>
+        <label>Cuenta: <input type="text" id="cuenta"></label><br>
+        <label>Palabras: <input type="number" id="palabras"></label><br>
+        <label>Ingreso: <input type="number" id="ingreso"></label><br>
+        <label>Egreso: <input type="number" id="egreso"></label><br>
+        <label>Cliente Pagó: <input type="number" id="clientePago"></label><br>
+        <label>Observación: <textarea id="observacion"></textarea></label><br>
+        <button type="submit">Guardar</button>
+    </form>
+
+    <script>
+        var t = window.TrelloPowerUp.iframe();
+
+        document.getElementById("dataForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            var data = {
+                fecha: document.getElementById("fecha").value,
+                origen: document.getElementById("origen").value,
+                cliente: document.getElementById("cliente").value,
+                cuenta: document.getElementById("cuenta").value,
+                palabras: document.getElementById("palabras").value,
+                ingreso: document.getElementById("ingreso").value,
+                egreso: document.getElementById("egreso").value,
+                clientePago: document.getElementById("clientePago").value,
+                observacion: document.getElementById("observacion").value
+            };
+
+            t.set('card', 'private', 'datos', data).then(() => {
+                t.closePopup();
+            });
+        });
+    </script>
+</body>
+</html>

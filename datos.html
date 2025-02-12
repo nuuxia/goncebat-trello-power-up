@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos de la Tarjeta</title>
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+</head>
+<body>
+    <h2>Datos Guardados</h2>
+    <div id="datos"></div>
+
+    <script>
+        var t = window.TrelloPowerUp.iframe();
+
+        t.get('card', 'private', 'datos', {}).then(function(datos) {
+            var content = `
+                <p><strong>Fecha:</strong> ${datos.fecha || ''}</p>
+                <p><strong>Origen:</strong> ${datos.origen || ''}</p>
+                <p><strong>Cliente:</strong> ${datos.cliente || ''}</p>
+                <p><strong>Cuenta:</strong> ${datos.cuenta || ''}</p>
+                <p><strong>Palabras:</strong> ${datos.palabras || ''}</p>
+                <p><strong>Ingreso:</strong> ${datos.ingreso || ''}</p>
+                <p><strong>Egreso:</strong> ${datos.egreso || ''}</p>
+                <p><strong>Cliente Pagó:</strong> ${datos.clientePago || ''}</p>
+                <p><strong>Observación:</strong> ${datos.observacion || ''}</p>
+            `;
+            document.getElementById("datos").innerHTML = content;
+        });
+    </script>
+</body>
+</html>
