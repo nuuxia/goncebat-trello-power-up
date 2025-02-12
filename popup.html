@@ -1,10 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popup Goncebat</title>
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 </head>
 <body>
     <h1>¡Hola desde Goncebat Automation!</h1>
     <p>Este es un popup de prueba en tu Power-Up.</p>
+
+    <script>
+        var t = window.TrelloPowerUp.iframe();
+        
+        // Enviar un mensaje de prueba a Trello
+        t.get('board', 'shared')
+            .then(function(data) {
+                console.log("Datos recibidos del tablero:", data);
+            })
+            .catch(function(error) {
+                console.error("Error en la comunicación con Trello:", error);
+            });
+    </script>
 </body>
 </html>

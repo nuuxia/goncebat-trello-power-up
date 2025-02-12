@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goncebat Automation</title>
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 </head>
 <body>
     <script>
-        var WHITE_ICON = 'https://nuuxia.github.io/goncebat-trello-power-up/icon.png';  // Cambia esto con la URL de tu icono
-        var BLACK_ICON = 'https://nuuxia.github.io/goncebat-trello-power-up/icon.png';  // Cambia esto también si quieres otro icono
+        var WHITE_ICON = 'https://nuuxia.github.io/goncebat-trello-power-up/icon.png';  
+        var BLACK_ICON = 'https://nuuxia.github.io/goncebat-trello-power-up/icon.png';  
 
-        // Inicializa el Power-Up
         window.TrelloPowerUp.initialize({
             'board-buttons': function (t, opts) {
                 return [{
-                    icon: WHITE_ICON, // Ícono del botón en la barra superior del tablero
+                    icon: WHITE_ICON,
                     text: 'Goncebat Automation',
                     callback: function (t) {
                         return t.popup({
@@ -22,6 +24,12 @@
                     }
                 }];
             }
+        });
+
+        // Asegura la comunicación con Trello
+        window.addEventListener("message", function(event) {
+            if (event.origin !== "https://trello.com") return;
+            console.log("Mensaje recibido desde Trello:", event.data);
         });
     </script>
 </body>
