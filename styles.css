@@ -16,6 +16,8 @@ body {
     width: 90%;
     max-width: 400px;
     text-align: center;
+    overflow-y: auto; /* Permite el scroll */
+    max-height: 80vh; /* Limita el alto para que no ocupe toda la pantalla */
 }
 
 input, textarea {
@@ -24,6 +26,11 @@ input, textarea {
     margin: 8px 0;
     border: 1px solid #ccc;
     border-radius: 4px;
+}
+
+textarea {
+    resize: vertical; /* Permite redimensionar verticalmente */
+    min-height: 60px;
 }
 
 button {
