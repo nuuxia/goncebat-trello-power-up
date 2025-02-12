@@ -10,16 +10,17 @@
     <script>
         var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp'; 
 
-        // Asegurar que Trello puede comunicarse con este Power-Up
+        // Inicializa el Power-Up y lo muestra en la barra superior del tablero
         window.TrelloPowerUp.initialize({
             'board-buttons': function (t, opts) {
                 return [{
                     icon: ICON_URL,
                     text: 'Goncebat Automation',
+                    condition: 'always', // 🔥 Asegura que siempre se muestre
                     callback: function (t) {
                         return t.popup({
                             title: "Goncebat Automation",
-                            url: t.signUrl('popup.html') // 🔥 URL firmada para evitar errores de seguridad
+                            url: t.signUrl('popup.html') 
                         });
                     }
                 }];
