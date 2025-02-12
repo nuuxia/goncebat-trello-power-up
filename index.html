@@ -8,22 +8,24 @@
 </head>
 <body>
     <script>
-        var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp'; // 🔥 URL del icono
+        var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp'; 
 
         window.TrelloPowerUp.initialize({
             'board-buttons': function (t, opts) {
                 return [{
-                    icon: ICON_URL, // 🔥 Se usa tu icono personalizado
+                    icon: ICON_URL,
                     text: 'Goncebat Automation',
                     callback: function (t) {
                         return t.popup({
                             title: "Goncebat Automation",
-                            url: t.signUrl('popup.html')
+                            url: t.signUrl('popup.html') 
                         });
                     }
                 }];
             }
         });
+
+        console.log("✅ Power-Up Goncebat Automation cargado correctamente.");
     </script>
 </body>
 </html>
