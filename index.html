@@ -1,18 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
 </head>
 <body>
     <script>
+        var WHITE_ICON = 'https://nuuxia.github.io/goncebat-trello-power-up/icon.png';  // Cambia esto con la URL de tu icono
+        var BLACK_ICON = 'https://nuuxia.github.io/goncebat-trello-power-up/icon.png';  // Cambia esto también si quieres otro icono
+
+        // Inicializa el Power-Up
         window.TrelloPowerUp.initialize({
             'board-buttons': function (t, opts) {
                 return [{
-                    icon: 'https://example.com/icon.png',
-                    text: 'Mi Power-Up',
+                    icon: WHITE_ICON, // Ícono del botón en la barra superior del tablero
+                    text: 'Goncebat Automation',
                     callback: function (t) {
-                        return t.alert({
-                            message: "¡Hola desde mi Power-Up!"
+                        return t.popup({
+                            title: "Goncebat Automation",
+                            url: 'https://nuuxia.github.io/goncebat-trello-power-up/popup.html'
                         });
                     }
                 }];
