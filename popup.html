@@ -11,12 +11,12 @@
     <p>Este es un popup de prueba en tu Power-Up.</p>
 
     <script>
-        var t = window.TrelloPowerUp.iframe();
-        
-        // Enviar un mensaje de prueba a Trello
+        var t = window.TrelloPowerUp.iframe();  // 🔥 Corrige la inicialización
+
+        // Obtener datos del tablero
         t.get('board', 'shared')
             .then(function(data) {
-                console.log("Datos recibidos del tablero:", data);
+                console.log("Datos del tablero:", data);
             })
             .catch(function(error) {
                 console.error("Error en la comunicación con Trello:", error);
