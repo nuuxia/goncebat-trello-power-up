@@ -3,63 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <title>Goncebat Automation - Power-Up</title>
-  <!-- Carga la librería de Trello Power-Up -->
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
 </head>
 <body>
-<script>
-  // URL del ícono que quieras mostrar en tu botón/sección
-  var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp';
 
-  // Tu endpoint de n8n (o cualquier endpoint) para guardar/actualizar/borrar datos
-  // Ajusta esta constante según tu caso.
-  var N8N_ENDPOINT = 'https://n8n.nuuxia.com/webhook-test/goncebat-automation';
+<script>
+  // Ícono en el botón de la tarjeta
+  var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp';
 
   // Inicializamos el Power-Up
   window.TrelloPowerUp.initialize({
-
-    // ---------- Botón en la tarjeta ----------
+    // Botón que aparece en la tarjeta
     'card-buttons': function(t, opts) {
-      // Si quieres que TODOS (incluyendo miembros sin permiso de edición) puedan ver el botón,
-      // no hagas ningún check. Si quisieras limitarlo, ahí sí usas memberCanWriteToModel.
-
-      return [
-        {
-          icon: ICON_URL,
-          text: 'Ingresar/Editar Datos',
-          callback: function(t) {
-            return t.popup({
-              title: "Ingresar Datos",
-              url: t.signUrl('popup.html'), // archivo con el formulario
-              height: 400
-            });
-          },
-        },
-      ];
-    },
-
-    // ---------- Sección en el reverso de la tarjeta ----------
-    'card-back-section': function(t, opts) {
-      // Si quieres que TODOS puedan ver la sección, no hacemos checks de permisos.
-      return {
-        title: 'Datos de la Tarjeta',
+      return [{
         icon: ICON_URL,
-        content: {
-          type: 'iframe',
-          url: t.signUrl('datos.html'), // aquí se muestran los datos guardados
-          height: 300 // ajusta la altura al contenido
+        text: 'Ver/Editar Datos',
+        callback: function(t) {
+          return t.popup({
+            title: 'Datos de la Tarjeta',
+            url: t.signUrl('popup.html'),
+            height: 600  // Ajusta según necesites
+          });
         }
-      };
+      }];
     }
-
-  },
-  {
-    // Opciones de "initializationOptions"
-    appKey: 'tuAppKeySiLoNecesitas',
-    appName: 'Goncebat Automation'
   });
 
-  console.log("✅ Power-Up Goncebat Automation cargado correctamente.");
+  console.log("Power-Up Goncebat Automation cargado correctamente.");
 </script>
+
 </body>
 </html>

@@ -2,69 +2,119 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Ingresar Datos</title>
+  <title>Datos (Crear/Editar/Borrar)</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="container">
-  <h2>Ingresar/Editar Datos</h2>
+
+<div class="container" id="mainContainer">
+  <h2>Datos de la Tarjeta</h2>
+
+  <!-- Mensaje si el usuario NO tiene permiso (cuando ADMIN_ONLY_VIEW = true) -->
+  <div id="noPermiso" style="display:none; color: #FFBABA; background:#D8000C; padding:10px; border-radius:4px;">
+    <strong>No tienes permiso para ver estos datos.</strong>
+  </div>
+
+  <!-- Formulario con campos requeridos (menos observación) -->
   <form id="dataForm">
     <label>Fecha: 
-      <input type="date" id="fecha" />
+      <input type="date" id="fecha" required />
     </label>
     <label>Origen: 
-      <input type="text" id="origen" />
+      <input type="text" id="origen" required />
     </label>
     <label>Cliente: 
-      <input type="text" id="cliente" />
+      <input type="text" id="cliente" required />
     </label>
     <label>Cuenta: 
-      <input type="text" id="cuenta" />
+      <input type="text" id="cuenta" required />
     </label>
     <label>Palabras: 
-      <input type="number" id="palabras" />
+      <input type="number" id="palabras" required />
     </label>
     <label>Ingreso: 
-      <input type="number" id="ingreso" />
+      <input type="number" id="ingreso" required />
     </label>
     <label>Egreso: 
-      <input type="number" id="egreso" />
+      <input type="number" id="egreso" required />
     </label>
     <label>Cliente Pagó: 
-      <input type="number" id="clientePago" />
+      <input type="number" id="clientePago" required />
     </label>
     <label>Observación: 
       <textarea id="observacion"></textarea>
     </label>
-    <button type="submit">Guardar</button>
+
+    <!-- Botones -->
+    <div style="margin-top:15px;">
+      <button type="submit" id="btnGuardar">Guardar</button>
+      <button type="button" id="btnBorrar" style="background-color: #b04632;">Borrar</button>
+    </div>
   </form>
 </div>
 
 <script>
+  // ---------------------------
+  // HARDCODEA TUS BOOLEANOS AQUÍ
+  // ---------------------------
+  const ADMIN_ONLY_VIEW = false;     // true => solo admins pueden ver los datos
+  const ADMIN_ONLY_BUTTONS = false;  // true => solo admins pueden usar los botones
+
+  // Instancia de Trello Power-Up
   var t = window.TrelloPowerUp.iframe();
 
-  // Opcional: si quieres una sola variable con tu endpoint
-  const N8N_ENDPOINT = 'https://n8n.nuuxia.com/webhook-test/goncebat-automation';
+  // Tu endpoint en n8n para guardar/actualizar/borrar
+  var N8N_ENDPOINT = 'https://n8n.nuuxia.com/webhook-test/goncebat-automation';
 
-  // Al cargar el popup, obtenemos los datos (si existen) y rellenamos el formulario
-  t.get('card', 'shared', 'datos', {})
-   .then(function(datos) {
-      if(datos.fecha) document.getElementById("fecha").value = datos.fecha;
-      if(datos.origen) document.getElementById("origen").value = datos.origen;
-      if(datos.cliente) document.getElementById("cliente").value = datos.cliente;
-      if(datos.cuenta) document.getElementById("cuenta").value = datos.cuenta;
-      if(datos.palabras) document.getElementById("palabras").value = datos.palabras;
-      if(datos.ingreso) document.getElementById("ingreso").value = datos.ingreso;
-      if(datos.egreso) document.getElementById("egreso").value = datos.egreso;
-      if(datos.clientePago) document.getElementById("clientePago").value = datos.clientePago;
-      if(datos.observacion) document.getElementById("observacion").value = datos.observacion;
+  let isAdminUser = false;
+
+  // 1) Verificamos si el usuario actual es admin (puede escribir en el board)
+  t.memberCanWriteToModel('board')
+   .then(function(canWrite) {
+     isAdminUser = canWrite;
+   })
+   .then(cargarDatos)
+   .catch(function(err){
+     console.error("Error al chequear permisos de admin: ", err);
+     cargarDatos();
    });
 
-  // Cuando se envía el formulario
+  // 2) Cargar la data guardada en Trello
+  function cargarDatos() {
+    // Si la vista está restringida sólo a admins y no soy admin => muestro "noPermiso"
+    if (ADMIN_ONLY_VIEW && !isAdminUser) {
+      document.getElementById("noPermiso").style.display = 'block';
+      document.getElementById("dataForm").style.display = 'none';
+      return;
+    }
+
+    // Caso contrario, cargo la data
+    t.get('card', 'shared', 'datos', {})
+     .then(function(datos) {
+       if(datos.fecha) document.getElementById("fecha").value = datos.fecha;
+       if(datos.origen) document.getElementById("origen").value = datos.origen;
+       if(datos.cliente) document.getElementById("cliente").value = datos.cliente;
+       if(datos.cuenta) document.getElementById("cuenta").value = datos.cuenta;
+       if(datos.palabras) document.getElementById("palabras").value = datos.palabras;
+       if(datos.ingreso) document.getElementById("ingreso").value = datos.ingreso;
+       if(datos.egreso) document.getElementById("egreso").value = datos.egreso;
+       if(datos.clientePago) document.getElementById("clientePago").value = datos.clientePago;
+       if(datos.observacion) document.getElementById("observacion").value = datos.observacion;
+
+       // Si los botones sólo pueden usarlos los admin y NO soy admin => oculto los botones
+       if (ADMIN_ONLY_BUTTONS && !isAdminUser) {
+         document.getElementById("btnGuardar").style.display = 'none';
+         document.getElementById("btnBorrar").style.display = 'none';
+       }
+     });
+  }
+
+  // 3) Guardar/Actualizar (submit)
   document.getElementById("dataForm").addEventListener("submit", function(event) {
     event.preventDefault();
 
+    // Construyo objeto con los datos del form
     var newData = {
       fecha: document.getElementById("fecha").value,
       origen: document.getElementById("origen").value,
@@ -77,30 +127,63 @@
       observacion: document.getElementById("observacion").value
     };
 
-    // Obtenemos el ID de la tarjeta para mandarlo a n8n y así tener un identificador único
+    // Obtenemos cardId para enviarlo a n8n
     t.card('id')
      .then(function(cardData) {
-       newData.cardId = cardData.id; // Asignamos el cardId al objeto de datos
-       
-       // 1) Guardar en Trello (scope SHARED)
+       newData.cardId = cardData.id;
+
+       // 1) Guardamos en Trello
        return t.set('card', 'shared', 'datos', newData)
          .then(function() {
-           // 2) Enviar (o actualizar) en n8n / Google Sheets
-           //    - Ajustar method y URL según tu flujo en n8n
-           fetch(N8N_ENDPOINT, {
+           // 2) Avisamos a n8n para crear/actualizar
+           return fetch(N8N_ENDPOINT, {
              method: "POST",
              headers: { "Content-Type": "application/json" },
              body: JSON.stringify(newData)
-           })
-           .catch(function(err) {
-             console.error("Error al enviar datos a n8n:", err);
            });
-
-           // Cerrar el popup de Trello
+         })
+         .then(function() {
+           // 3) Cerramos el popup
+           t.closePopup();
+         })
+         .catch(function(err) {
+           console.error("Error al guardar:", err);
            t.closePopup();
          });
      });
   });
+
+  // 4) Botón "Borrar"
+  document.getElementById("btnBorrar").addEventListener("click", function() {
+    // Generamos body para el endpoint de n8n
+    t.card('id')
+     .then(function(cardData) {
+       var bodyToDelete = {
+         cardId: cardData.id,
+         action: 'delete'
+       };
+
+       // 4.a) Borramos localmente en Trello
+       return t.set('card', 'shared', 'datos', {})
+         .then(function() {
+           // 4.b) Avisamos a n8n que borre en Sheets
+           return fetch(N8N_ENDPOINT, {
+             method: "POST",
+             headers: { "Content-Type": "application/json" },
+             body: JSON.stringify(bodyToDelete)
+           });
+         });
+     })
+     .then(function() {
+       // Cierra el popup
+       t.closePopup();
+     })
+     .catch(function(err){
+       console.error("Error al borrar:", err);
+       t.closePopup();
+     });
+  });
 </script>
+
 </body>
 </html>
