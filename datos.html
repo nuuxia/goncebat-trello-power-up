@@ -7,30 +7,90 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h2>Datos Guardados</h2>
-    <div id="datos"></div>
+<div class="container">
+  <h2>Datos Guardados</h2>
+  <div id="datos"></div>
+  <div id="acciones" style="margin-top: 20px; text-align:center;">
+    <button id="btnEditar" style="margin-right: 10px;">Editar</button>
+    <button id="btnBorrar" style="background-color: #b04632;">Borrar</button>
   </div>
+</div>
 
-  <script>
-    var t = window.TrelloPowerUp.iframe();
+<script>
+  var t = window.TrelloPowerUp.iframe();
+  const N8N_ENDPOINT = 'https://n8n.nuuxia.com/webhook-test/goncebat-automation';
 
-    // Leer los datos guardados en 'shared'
+  function mostrarDatos(datos) {
+    // Si no hay datos guardados, mostramos un mensaje
+    if (!datos || Object.keys(datos).length === 0) {
+      document.getElementById("datos").innerHTML = "<p>No hay datos guardados para esta tarjeta.</p>";
+      return;
+    }
+
+    var content = `
+      <p><strong>Fecha:</strong> ${datos.fecha || ''}</p>
+      <p><strong>Origen:</strong> ${datos.origen || ''}</p>
+      <p><strong>Cliente:</strong> ${datos.cliente || ''}</p>
+      <p><strong>Cuenta:</strong> ${datos.cuenta || ''}</p>
+      <p><strong>Palabras:</strong> ${datos.palabras || ''}</p>
+      <p><strong>Ingreso:</strong> ${datos.ingreso || ''}</p>
+      <p><strong>Egreso:</strong> ${datos.egreso || ''}</p>
+      <p><strong>Cliente Pagó:</strong> ${datos.clientePago || ''}</p>
+      <p><strong>Observación:</strong> ${datos.observacion || ''}</p>
+    `;
+    document.getElementById("datos").innerHTML = content;
+  }
+
+  // 1) Al cargar la sección, obtenemos lo que está en Trello
+  t.get('card', 'shared', 'datos', {})
+   .then(function(datos) {
+     mostrarDatos(datos);
+   });
+
+  // 2) Botón "Editar"
+  document.getElementById("btnEditar").addEventListener("click", function() {
+    // Simplemente abrimos el mismo popup de nuevo (popup.html)
+    // con la info ya pre-cargada, gracias al t.get que hace el popup
+    t.popup({
+      title: "Editar Datos",
+      url: t.signUrl('popup.html'),
+      height: 400
+    });
+  });
+
+  // 3) Botón "Borrar"
+  document.getElementById("btnBorrar").addEventListener("click", function() {
+    // Primero leemos los datos para saber si hay un cardId
     t.get('card', 'shared', 'datos', {})
-      .then(function(datos) {
-        var content = `
-          <p><strong>Fecha:</strong> ${datos.fecha || ''}</p>
-          <p><strong>Origen:</strong> ${datos.origen || ''}</p>
-          <p><strong>Cliente:</strong> ${datos.cliente || ''}</p>
-          <p><strong>Cuenta:</strong> ${datos.cuenta || ''}</p>
-          <p><strong>Palabras:</strong> ${datos.palabras || ''}</p>
-          <p><strong>Ingreso:</strong> ${datos.ingreso || ''}</p>
-          <p><strong>Egreso:</strong> ${datos.egreso || ''}</p>
-          <p><strong>Cliente Pagó:</strong> ${datos.clientePago || ''}</p>
-          <p><strong>Observación:</strong> ${datos.observacion || ''}</p>
-        `;
-        document.getElementById("datos").innerHTML = content;
-      });
-  </script>
+     .then(function(datos) {
+       // Borramos en Trello
+       return t.set('card', 'shared', 'datos', {});
+     })
+     .then(function() {
+       // También avisamos a n8n (o tu servidor) para que borre el registro en tu Sheet
+       // Normalmente mandarías el 'cardId' para identificar la fila a borrar.
+       return t.card('id')
+         .then(function(cardData) {
+           var body = {
+             cardId: cardData.id,
+             action: 'delete'
+           };
+           return fetch(N8N_ENDPOINT, {
+             method: 'POST', // o 'DELETE' si tu endpoint lo soporta
+             headers: { "Content-Type": "application/json" },
+             body: JSON.stringify(body)
+           });
+         });
+     })
+     .then(function() {
+       // Refrescamos la vista con "sin datos"
+       mostrarDatos({});
+     })
+     .catch(function(err) {
+       console.error("Error al borrar datos:", err);
+     });
+  });
+
+</script>
 </body>
 </html>

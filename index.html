@@ -7,53 +7,59 @@
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
 </head>
 <body>
-  <script>
-    // URL del ícono que quieras mostrar en tu botón/sección
-    var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp';
+<script>
+  // URL del ícono que quieras mostrar en tu botón/sección
+  var ICON_URL = 'https://nuuxia.github.io/goncebat-trello-power-up/goncebat-creative-group-icon.webp';
 
-    // Inicializamos el Power-Up con las funciones que nos interesan
-    window.TrelloPowerUp.initialize({
-      // ---------- Botón en la tarjeta ----------
-      'card-buttons': async function(t, opts) {
-        // Solo mostramos el botón si el usuario puede editar el tablero
-        let canEditBoard = await t.memberCanWriteToModel('board');
-        if (!canEditBoard) {
-          return []; // Si NO puede, no devolvemos nada
-        }
-        return [
-          {
-            icon: ICON_URL,
-            text: 'Ingresar Datos',
-            callback: function(t) {
-              return t.popup({
-                title: "Ingresar Datos",
-                url: t.signUrl('popup.html'), // apunta a tu formulario
-              });
-            },
-          },
-        ];
-      },
+  // Tu endpoint de n8n (o cualquier endpoint) para guardar/actualizar/borrar datos
+  // Ajusta esta constante según tu caso.
+  var N8N_ENDPOINT = 'https://n8n.nuuxia.com/webhook-test/goncebat-automation';
 
-      // ---------- Sección en el reverso de la tarjeta ----------
-      'card-back-section': async function(t, opts) {
-        // Solo mostramos la sección si el usuario puede editar el tablero
-        let canEditBoard = await t.memberCanWriteToModel('board');
-        if (!canEditBoard) {
-          return null; // Si NO puede, no devolvemos la sección
-        }
-        return {
-          title: 'Datos de la Tarjeta',
+  // Inicializamos el Power-Up
+  window.TrelloPowerUp.initialize({
+
+    // ---------- Botón en la tarjeta ----------
+    'card-buttons': function(t, opts) {
+      // Si quieres que TODOS (incluyendo miembros sin permiso de edición) puedan ver el botón,
+      // no hagas ningún check. Si quisieras limitarlo, ahí sí usas memberCanWriteToModel.
+
+      return [
+        {
           icon: ICON_URL,
-          content: {
-            type: 'iframe',
-            url: t.signUrl('datos.html'), // página para mostrar los datos guardados
-            height: 250 // altura del iframe (puedes ajustarla)
-          }
-        };
-      }
-    });
+          text: 'Ingresar/Editar Datos',
+          callback: function(t) {
+            return t.popup({
+              title: "Ingresar Datos",
+              url: t.signUrl('popup.html'), // archivo con el formulario
+              height: 400
+            });
+          },
+        },
+      ];
+    },
 
-    console.log("✅ Power-Up Goncebat Automation cargado correctamente.");
-  </script>
+    // ---------- Sección en el reverso de la tarjeta ----------
+    'card-back-section': function(t, opts) {
+      // Si quieres que TODOS puedan ver la sección, no hacemos checks de permisos.
+      return {
+        title: 'Datos de la Tarjeta',
+        icon: ICON_URL,
+        content: {
+          type: 'iframe',
+          url: t.signUrl('datos.html'), // aquí se muestran los datos guardados
+          height: 300 // ajusta la altura al contenido
+        }
+      };
+    }
+
+  },
+  {
+    // Opciones de "initializationOptions"
+    appKey: 'tuAppKeySiLoNecesitas',
+    appName: 'Goncebat Automation'
+  });
+
+  console.log("✅ Power-Up Goncebat Automation cargado correctamente.");
+</script>
 </body>
 </html>

@@ -7,58 +7,100 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h2>Ingresar Datos</h2>
-    <form id="dataForm">
-      <label>Fecha: <input type="date" id="fecha" /></label>
-      <label>Origen: <input type="text" id="origen" /></label>
-      <label>Cliente: <input type="text" id="cliente" /></label>
-      <label>Cuenta: <input type="text" id="cuenta" /></label>
-      <label>Palabras: <input type="number" id="palabras" /></label>
-      <label>Ingreso: <input type="number" id="ingreso" /></label>
-      <label>Egreso: <input type="number" id="egreso" /></label>
-      <label>Cliente Pagó: <input type="number" id="clientePago" /></label>
-      <label>Observación: <textarea id="observacion"></textarea></label>
-      <button type="submit">Guardar</button>
-    </form>
-  </div>
+<div class="container">
+  <h2>Ingresar/Editar Datos</h2>
+  <form id="dataForm">
+    <label>Fecha: 
+      <input type="date" id="fecha" />
+    </label>
+    <label>Origen: 
+      <input type="text" id="origen" />
+    </label>
+    <label>Cliente: 
+      <input type="text" id="cliente" />
+    </label>
+    <label>Cuenta: 
+      <input type="text" id="cuenta" />
+    </label>
+    <label>Palabras: 
+      <input type="number" id="palabras" />
+    </label>
+    <label>Ingreso: 
+      <input type="number" id="ingreso" />
+    </label>
+    <label>Egreso: 
+      <input type="number" id="egreso" />
+    </label>
+    <label>Cliente Pagó: 
+      <input type="number" id="clientePago" />
+    </label>
+    <label>Observación: 
+      <textarea id="observacion"></textarea>
+    </label>
+    <button type="submit">Guardar</button>
+  </form>
+</div>
 
-  <script>
-    var t = window.TrelloPowerUp.iframe();
+<script>
+  var t = window.TrelloPowerUp.iframe();
 
-    // Reemplaza esta URL con la de tu script de Google Sheets si lo necesitas
-    const GOOGLE_SHEETS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxeE33CB1UP6JDLvbEEtBT7uXL84d13BJPdqPt4TQJvP35IYIPusTfErYpLp7ILqgm8eA/exec";
+  // Opcional: si quieres una sola variable con tu endpoint
+  const N8N_ENDPOINT = 'https://n8n.nuuxia.com/webhook-test/goncebat-automation';
 
-    document.getElementById("dataForm").addEventListener("submit", function(event) {
-      event.preventDefault();
+  // Al cargar el popup, obtenemos los datos (si existen) y rellenamos el formulario
+  t.get('card', 'shared', 'datos', {})
+   .then(function(datos) {
+      if(datos.fecha) document.getElementById("fecha").value = datos.fecha;
+      if(datos.origen) document.getElementById("origen").value = datos.origen;
+      if(datos.cliente) document.getElementById("cliente").value = datos.cliente;
+      if(datos.cuenta) document.getElementById("cuenta").value = datos.cuenta;
+      if(datos.palabras) document.getElementById("palabras").value = datos.palabras;
+      if(datos.ingreso) document.getElementById("ingreso").value = datos.ingreso;
+      if(datos.egreso) document.getElementById("egreso").value = datos.egreso;
+      if(datos.clientePago) document.getElementById("clientePago").value = datos.clientePago;
+      if(datos.observacion) document.getElementById("observacion").value = datos.observacion;
+   });
 
-      var data = {
-        fecha: document.getElementById("fecha").value,
-        origen: document.getElementById("origen").value,
-        cliente: document.getElementById("cliente").value,
-        cuenta: document.getElementById("cuenta").value,
-        palabras: document.getElementById("palabras").value,
-        ingreso: document.getElementById("ingreso").value,
-        egreso: document.getElementById("egreso").value,
-        clientePago: document.getElementById("clientePago").value,
-        observacion: document.getElementById("observacion").value
-      };
+  // Cuando se envía el formulario
+  document.getElementById("dataForm").addEventListener("submit", function(event) {
+    event.preventDefault();
 
-      // Guardar en Trello con scope SHARED para que otros admins puedan ver
-      t.set('card', 'shared', 'datos', data)
-        .then(() => {
-          // (Opcional) Enviar a Google Sheets
-          fetch(GOOGLE_SHEETS_SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-          });
+    var newData = {
+      fecha: document.getElementById("fecha").value,
+      origen: document.getElementById("origen").value,
+      cliente: document.getElementById("cliente").value,
+      cuenta: document.getElementById("cuenta").value,
+      palabras: document.getElementById("palabras").value,
+      ingreso: document.getElementById("ingreso").value,
+      egreso: document.getElementById("egreso").value,
+      clientePago: document.getElementById("clientePago").value,
+      observacion: document.getElementById("observacion").value
+    };
 
-          // Cerrar el popup
-          t.closePopup();
-        });
-    });
-  </script>
+    // Obtenemos el ID de la tarjeta para mandarlo a n8n y así tener un identificador único
+    t.card('id')
+     .then(function(cardData) {
+       newData.cardId = cardData.id; // Asignamos el cardId al objeto de datos
+       
+       // 1) Guardar en Trello (scope SHARED)
+       return t.set('card', 'shared', 'datos', newData)
+         .then(function() {
+           // 2) Enviar (o actualizar) en n8n / Google Sheets
+           //    - Ajustar method y URL según tu flujo en n8n
+           fetch(N8N_ENDPOINT, {
+             method: "POST",
+             headers: { "Content-Type": "application/json" },
+             body: JSON.stringify(newData)
+           })
+           .catch(function(err) {
+             console.error("Error al enviar datos a n8n:", err);
+           });
+
+           // Cerrar el popup de Trello
+           t.closePopup();
+         });
+     });
+  });
+</script>
 </body>
 </html>
