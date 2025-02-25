@@ -2,95 +2,288 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Datos de la Tarjeta</title>
+  <title>Datos (Crear/Editar/Borrar)</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
+
+  <!-- Tu CSS general -->
   <link rel="stylesheet" href="styles.css">
+
+  <!-- Choices.js (CSS + JS) para selects con búsqueda -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 </head>
 <body>
+
 <div class="container">
-  <h2>Datos Guardados</h2>
-  <div id="datos"></div>
-  <div id="acciones" style="margin-top: 20px; text-align:center;">
-    <button id="btnEditar" style="margin-right: 10px;">Editar</button>
-    <button id="btnBorrar" style="background-color: #b04632;">Borrar</button>
-  </div>
+  <h2>Datos de la Tarjeta</h2>
+
+  <form id="dataForm">
+    <label>Fecha:
+      <input type="date" id="fecha" required />
+    </label>
+
+    <label>Origen:
+      <select id="origenSelect" required></select>
+    </label>
+
+    <label>Cliente:
+      <select id="clienteSelect" required></select>
+    </label>
+
+    <label>Cuenta:
+      <select id="cuentaSelect" required></select>
+    </label>
+
+    <label>Palabras:
+      <input type="number" id="palabras" required />
+    </label>
+    <label>Ingreso:
+      <input type="number" id="ingreso" required />
+    </label>
+    <label>Egreso:
+      <input type="number" id="egreso" required />
+    </label>
+    <label>Cliente Pagó:
+      <input type="number" id="clientePago" required />
+    </label>
+    <label>Observación:
+      <textarea id="observacion"></textarea>
+    </label>
+
+    <!-- Tres botones: Guardar, Borrar y Añadir -->
+    <div style="margin-top:15px; display: flex; gap: 10px;">
+      <!-- Guardar -->
+      <button type="submit" id="btnGuardar">Guardar</button>
+      <!-- Borrar -->
+      <button type="button" id="btnBorrar" style="background-color: #b04632;">Borrar</button>
+      <!-- Añadir (pequeño, a la derecha) -->
+      <button type="button" id="btnAniadir" 
+              style="margin-left:auto; font-size:12px; padding: 6px 10px; background-color:#5ba4cf;">
+        Añadir
+      </button>
+    </div>
+  </form>
 </div>
 
 <script>
-  var t = window.TrelloPowerUp.iframe();
-  const N8N_ENDPOINT = 'https://n8n.nuuxia.com/webhook-test/goncebat-automation';
+  // Trello
+  const t = window.TrelloPowerUp.iframe();
 
-  function mostrarDatos(datos) {
-    // Si no hay datos guardados, mostramos un mensaje
-    if (!datos || Object.keys(datos).length === 0) {
-      document.getElementById("datos").innerHTML = "<p>No hay datos guardados para esta tarjeta.</p>";
-      return;
+  // Endpoints
+  const GET_DESPLEGABLES_URL = 'https://n8n.nuuxia.com/webhook/goncebat-automation/getDesplegables';
+  const ADD_DESPLEGABLES_URL = 'https://n8n.nuuxia.com/webhook/goncebat-automation/addDesplegables';
+  const ADD_FORMULARIO_URL   = 'https://n8n.nuuxia.com/webhook/goncebat-automation/addFormulario';
+
+  // Arrays originales
+  let originalOrigenes = [];
+  let originalClientes = [];
+  let originalCuentas  = [];
+
+  // Choices instances
+  let origenChoices, clienteChoices, cuentaChoices;
+
+  document.addEventListener('DOMContentLoaded', async function() {
+    try {
+      // 1) Consultar desplegables
+      let resp = await fetch(GET_DESPLEGABLES_URL);
+      let data = await resp.json();
+      let desplegables = data[0] || {};
+
+      originalOrigenes = desplegables.origenes   || [];
+      originalClientes = desplegables.clientes   || [];
+      originalCuentas  = desplegables.cuentas    || [];
+
+      // Convertimos en { value, label }
+      let origenOptions = originalOrigenes.map(o => ({ value: o, label: o }));
+      let clienteOptions= originalClientes.map(c => ({ value: c, label: c }));
+      let cuentaOptions = originalCuentas.map(u => ({ value: u, label: u }));
+
+      // 2) Inicializar Choices
+      origenChoices = new Choices('#origenSelect', {
+        placeholderValue: 'Selecciona o escribe...',
+        searchPlaceholderValue: 'Buscar Origen...',
+        removeItemButton: false,
+        noResultsText: 'No hay coincidencias',
+        noChoicesText: 'No hay datos',
+        addItemText: (value) => `Presiona Enter para agregar: "${value}"`,
+        shouldSort: false,
+        allowCustomValues: true,
+        searchEnabled: true,
+        duplicateItemsAllowed: false
+      });
+      origenChoices.setChoices(origenOptions, 'value', 'label', false);
+
+      clienteChoices = new Choices('#clienteSelect', {
+        placeholderValue: 'Selecciona o escribe...',
+        searchPlaceholderValue: 'Buscar Cliente...',
+        removeItemButton: false,
+        noResultsText: 'No hay coincidencias',
+        noChoicesText: 'No hay datos',
+        addItemText: (value) => `Presiona Enter para agregar: "${value}"`,
+        shouldSort: false,
+        allowCustomValues: true,
+        searchEnabled: true,
+        duplicateItemsAllowed: false
+      });
+      clienteChoices.setChoices(clienteOptions, 'value', 'label', false);
+
+      cuentaChoices = new Choices('#cuentaSelect', {
+        placeholderValue: 'Selecciona o escribe...',
+        searchPlaceholderValue: 'Buscar Cuenta...',
+        removeItemButton: false,
+        noResultsText: 'No hay coincidencias',
+        noChoicesText: 'No hay datos',
+        addItemText: (value) => `Presiona Enter para agregar: "${value}"`,
+        shouldSort: false,
+        allowCustomValues: true,
+        searchEnabled: true,
+        duplicateItemsAllowed: false
+      });
+      cuentaChoices.setChoices(cuentaOptions, 'value', 'label', false);
+
+      // 3) Cargar datos guardados en Trello
+      let datos = await t.get('card', 'shared', 'datos', {});
+      if (datos.fecha)       document.getElementById("fecha").value = datos.fecha;
+      if (datos.palabras)    document.getElementById("palabras").value = datos.palabras;
+      if (datos.ingreso)     document.getElementById("ingreso").value = datos.ingreso;
+      if (datos.egreso)      document.getElementById("egreso").value = datos.egreso;
+      if (datos.clientePago) document.getElementById("clientePago").value = datos.clientePago;
+      if (datos.observacion) document.getElementById("observacion").value = datos.observacion;
+
+      // Seleccionar valores en los combos si había algo
+      if (datos.origen)  origenChoices.setChoiceByValue(datos.origen);
+      if (datos.cliente) clienteChoices.setChoiceByValue(datos.cliente);
+      if (datos.cuenta)  cuentaChoices.setChoiceByValue(datos.cuenta);
+
+    } catch (err) {
+      console.error("Error al obtener desplegables:", err);
     }
-
-    var content = `
-      <p><strong>Fecha:</strong> ${datos.fecha || ''}</p>
-      <p><strong>Origen:</strong> ${datos.origen || ''}</p>
-      <p><strong>Cliente:</strong> ${datos.cliente || ''}</p>
-      <p><strong>Cuenta:</strong> ${datos.cuenta || ''}</p>
-      <p><strong>Palabras:</strong> ${datos.palabras || ''}</p>
-      <p><strong>Ingreso:</strong> ${datos.ingreso || ''}</p>
-      <p><strong>Egreso:</strong> ${datos.egreso || ''}</p>
-      <p><strong>Cliente Pagó:</strong> ${datos.clientePago || ''}</p>
-      <p><strong>Observación:</strong> ${datos.observacion || ''}</p>
-    `;
-    document.getElementById("datos").innerHTML = content;
-  }
-
-  // 1) Al cargar la sección, obtenemos lo que está en Trello
-  t.get('card', 'shared', 'datos', {})
-   .then(function(datos) {
-     mostrarDatos(datos);
-   });
-
-  // 2) Botón "Editar"
-  document.getElementById("btnEditar").addEventListener("click", function() {
-    // Simplemente abrimos el mismo popup de nuevo (popup.html)
-    // con la info ya pre-cargada, gracias al t.get que hace el popup
-    t.popup({
-      title: "Editar Datos",
-      url: t.signUrl('popup.html'),
-      height: 400
-    });
   });
 
-  // 3) Botón "Borrar"
-  document.getElementById("btnBorrar").addEventListener("click", function() {
-    // Primero leemos los datos para saber si hay un cardId
-    t.get('card', 'shared', 'datos', {})
-     .then(function(datos) {
-       // Borramos en Trello
-       return t.set('card', 'shared', 'datos', {});
+  // ===== BOTÓN GUARDAR => envía TODOS los campos a addFormulario =====
+  document.getElementById("dataForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    // Tomamos todos los campos
+    let newData = {
+      fecha:       document.getElementById("fecha").value,
+      origen:      origenChoices.getValue(true),
+      cliente:     clienteChoices.getValue(true),
+      cuenta:      cuentaChoices.getValue(true),
+      palabras:    document.getElementById("palabras").value,
+      ingreso:     document.getElementById("ingreso").value,
+      egreso:      document.getElementById("egreso").value,
+      clientePago: document.getElementById("clientePago").value,
+      observacion: document.getElementById("observacion").value
+    };
+
+    // 1) Guardar en Trello
+    t.card('id')
+     .then(function(cardData) {
+       newData.cardId = cardData.id;
+       return t.set('card', 'shared', 'datos', newData);
      })
      .then(function() {
-       // También avisamos a n8n (o tu servidor) para que borre el registro en tu Sheet
-       // Normalmente mandarías el 'cardId' para identificar la fila a borrar.
-       return t.card('id')
-         .then(function(cardData) {
-           var body = {
-             cardId: cardData.id,
-             action: 'delete'
-           };
-           return fetch(N8N_ENDPOINT, {
-             method: 'POST', // o 'DELETE' si tu endpoint lo soporta
-             headers: { "Content-Type": "application/json" },
-             body: JSON.stringify(body)
-           });
-         });
+       // 2) Enviar a addFormulario
+       return fetch(ADD_FORMULARIO_URL, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify(newData)
+       });
      })
      .then(function() {
-       // Refrescamos la vista con "sin datos"
-       mostrarDatos({});
+       t.closePopup();
      })
      .catch(function(err) {
-       console.error("Error al borrar datos:", err);
+       console.error("Error al guardar:", err);
+       t.closePopup();
      });
   });
 
+  // ===== BOTÓN BORRAR =====
+  document.getElementById("btnBorrar").addEventListener("click", function() {
+    t.card('id').then(function(cardData) {
+      var bodyToDelete = {
+        cardId: cardData.id,
+        action: 'delete'
+      };
+
+      // Borrar en Trello
+      return t.set('card', 'shared', 'datos', {})
+       .then(function() {
+         // (Opcional) Avisar a addDesplegables
+         return fetch(ADD_DESPLEGABLES_URL, {
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify(bodyToDelete)
+         });
+       })
+       .then(function() {
+         t.closePopup();
+       })
+       .catch(function(err) {
+         console.error("Error al borrar:", err);
+         t.closePopup();
+       });
+    });
+  });
+
+  // ===== BOTÓN AÑADIR => sólo agrega los nuevos Origen/Cliente/Cuenta a addDesplegables =====
+  document.getElementById("btnAniadir").addEventListener("click", function() {
+    let origenSeleccionado  = origenChoices.getValue(true);
+    let clienteSeleccionado = clienteChoices.getValue(true);
+    let cuentaSeleccionada  = cuentaChoices.getValue(true);
+
+    let promises = [];
+
+    // Si es nuevo, lo enviamos
+    if (origenSeleccionado && !originalOrigenes.includes(origenSeleccionado)) {
+      promises.push(fetch(ADD_DESPLEGABLES_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newOrigen: origenSeleccionado })
+      }));
+    }
+    if (clienteSeleccionado && !originalClientes.includes(clienteSeleccionado)) {
+      promises.push(fetch(ADD_DESPLEGABLES_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newCliente: clienteSeleccionado })
+      }));
+    }
+    if (cuentaSeleccionada && !originalCuentas.includes(cuentaSeleccionada)) {
+      promises.push(fetch(ADD_DESPLEGABLES_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newCuenta: cuentaSeleccionada })
+      }));
+    }
+
+    if (promises.length === 0) {
+      alert("No hay ningún valor nuevo que añadir.");
+      return;
+    }
+
+    Promise.all(promises)
+      .then(() => {
+        alert("¡Valores añadidos correctamente a Desplegables!");
+        // Actualizamos arrays originales para no volver a enviarlos
+        if (origenSeleccionado && !originalOrigenes.includes(origenSeleccionado)) {
+          originalOrigenes.push(origenSeleccionado);
+        }
+        if (clienteSeleccionado && !originalClientes.includes(clienteSeleccionado)) {
+          originalClientes.push(clienteSeleccionado);
+        }
+        if (cuentaSeleccionada && !originalCuentas.includes(cuentaSeleccionada)) {
+          originalCuentas.push(cuentaSeleccionada);
+        }
+      })
+      .catch(err => {
+        console.error("Error al añadir valores:", err);
+        alert("Error al añadir. Revisa la consola.");
+      });
+  });
 </script>
+
 </body>
 </html>

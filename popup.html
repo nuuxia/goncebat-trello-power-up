@@ -2,140 +2,90 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Datos (Crear/Editar/Borrar)</title>
+  <title>Datos de la Tarjeta</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
 <div class="container">
-  <h2>Datos de la Tarjeta</h2>
-
-  <form id="dataForm">
-    <label>Fecha: 
-      <input type="date" id="fecha" required />
-    </label>
-    <label>Origen: 
-      <input type="text" id="origen" required />
-    </label>
-    <label>Cliente: 
-      <input type="text" id="cliente" required />
-    </label>
-    <label>Cuenta: 
-      <input type="text" id="cuenta" required />
-    </label>
-    <label>Palabras: 
-      <input type="number" id="palabras" required />
-    </label>
-    <label>Ingreso: 
-      <input type="number" id="ingreso" required />
-    </label>
-    <label>Egreso: 
-      <input type="number" id="egreso" required />
-    </label>
-    <label>Cliente Pagó: 
-      <input type="number" id="clientePago" required />
-    </label>
-    <label>Observación: 
-      <textarea id="observacion"></textarea>
-    </label>
-
-    <!-- Botones -->
-    <div style="margin-top:15px;">
-      <button type="submit" id="btnGuardar">Guardar</button>
-      <button type="button" id="btnBorrar" style="background-color: #b04632;">Borrar</button>
-    </div>
-  </form>
+  <h2>Datos Guardados</h2>
+  <div id="datos"></div>
+  <div id="acciones" style="margin-top: 20px; text-align:center;">
+    <button id="btnEditar" style="margin-right: 10px;">Editar</button>
+    <button id="btnBorrar" style="background-color: #b04632;">Borrar</button>
+  </div>
 </div>
 
 <script>
   var t = window.TrelloPowerUp.iframe();
-  // Tu endpoint de n8n
-  var N8N_ENDPOINT = 'https://n8n.nuuxia.com/webhook-test/goncebat-automation';
 
-  // 1) Al cargar, obtenemos datos si existen
+  // (Opcional) Al borrar, podemos llamar a addDesplegables o no, según necesites
+  const N8N_ADD_DESPLEGABLES = 'https://n8n.nuuxia.com/webhook/goncebat-automation/addDesplegables';
+
+  function mostrarDatos(datos) {
+    if (!datos || Object.keys(datos).length === 0) {
+      document.getElementById("datos").innerHTML = "<p>No hay datos guardados para esta tarjeta.</p>";
+      return;
+    }
+
+    var content = `
+      <p><strong>Fecha:</strong> ${datos.fecha || ''}</p>
+      <p><strong>Origen:</strong> ${datos.origen || ''}</p>
+      <p><strong>Cliente:</strong> ${datos.cliente || ''}</p>
+      <p><strong>Cuenta:</strong> ${datos.cuenta || ''}</p>
+      <p><strong>Palabras:</strong> ${datos.palabras || ''}</p>
+      <p><strong>Ingreso:</strong> ${datos.ingreso || ''}</p>
+      <p><strong>Egreso:</strong> ${datos.egreso || ''}</p>
+      <p><strong>Cliente Pagó:</strong> ${datos.clientePago || ''}</p>
+      <p><strong>Observación:</strong> ${datos.observacion || ''}</p>
+    `;
+    document.getElementById("datos").innerHTML = content;
+  }
+
+  // 1) Cargar lo guardado en Trello
   t.get('card', 'shared', 'datos', {})
    .then(function(datos) {
-     if(datos.fecha) document.getElementById("fecha").value = datos.fecha;
-     if(datos.origen) document.getElementById("origen").value = datos.origen;
-     if(datos.cliente) document.getElementById("cliente").value = datos.cliente;
-     if(datos.cuenta) document.getElementById("cuenta").value = datos.cuenta;
-     if(datos.palabras) document.getElementById("palabras").value = datos.palabras;
-     if(datos.ingreso) document.getElementById("ingreso").value = datos.ingreso;
-     if(datos.egreso) document.getElementById("egreso").value = datos.egreso;
-     if(datos.clientePago) document.getElementById("clientePago").value = datos.clientePago;
-     if(datos.observacion) document.getElementById("observacion").value = datos.observacion;
+     mostrarDatos(datos);
    });
 
-  // 2) Al hacer submit => Guardar/Actualizar
-  document.getElementById("dataForm").addEventListener("submit", function(event) {
-    event.preventDefault();
-
-    var newData = {
-      fecha: document.getElementById("fecha").value,
-      origen: document.getElementById("origen").value,
-      cliente: document.getElementById("cliente").value,
-      cuenta: document.getElementById("cuenta").value,
-      palabras: document.getElementById("palabras").value,
-      ingreso: document.getElementById("ingreso").value,
-      egreso: document.getElementById("egreso").value,
-      clientePago: document.getElementById("clientePago").value,
-      observacion: document.getElementById("observacion").value
-    };
-
-    t.card('id').then(function(cardData) {
-      newData.cardId = cardData.id;
-
-      // 2.a) Guardar en Trello
-      return t.set('card', 'shared', 'datos', newData)
-       .then(function() {
-         // 2.b) Enviar a n8n
-         return fetch(N8N_ENDPOINT, {
-           method: "POST",
-           headers: { "Content-Type": "application/json" },
-           body: JSON.stringify(newData)
-         });
-       })
-       .then(function() {
-         // 2.c) Cerrar el popup
-         t.closePopup();
-       })
-       .catch(function(err) {
-         console.error("Error al guardar:", err);
-         t.closePopup();
-       });
+  // 2) Botón "Editar" => abre datos.html
+  document.getElementById("btnEditar").addEventListener("click", function() {
+    t.popup({
+      title: "Editar Datos",
+      url: t.signUrl('datos.html'),
+      height: 650
     });
   });
 
-  // 3) Borrar datos
+  // 3) Botón "Borrar"
   document.getElementById("btnBorrar").addEventListener("click", function() {
-    t.card('id').then(function(cardData) {
-      var bodyToDelete = {
-        cardId: cardData.id,
-        action: 'delete'
-      };
-
-      // 3.a) Borrar en Trello
-      return t.set('card', 'shared', 'datos', {})
-       .then(function() {
-         // 3.b) Avisar a n8n
-         return fetch(N8N_ENDPOINT, {
-           method: "POST",
-           headers: { "Content-Type": "application/json" },
-           body: JSON.stringify(bodyToDelete)
+    t.get('card', 'shared', 'datos', {})
+     .then(function() {
+       // Borramos en Trello
+       return t.set('card', 'shared', 'datos', {});
+     })
+     .then(function() {
+       // Avisar a n8n (opcional)
+       return t.card('id')
+         .then(function(cardData) {
+           var body = {
+             cardId: cardData.id,
+             action: 'delete'
+           };
+           return fetch(N8N_ADD_DESPLEGABLES, {
+             method: 'POST',
+             headers: { "Content-Type": "application/json" },
+             body: JSON.stringify(body)
+           });
          });
-       })
-       .then(function() {
-         // 3.c) Cerrar popup
-         t.closePopup();
-       })
-       .catch(function(err){
-         console.error("Error al borrar:", err);
-         t.closePopup();
-       });
-    });
+     })
+     .then(function() {
+       mostrarDatos({});
+     })
+     .catch(function(err) {
+       console.error("Error al borrar datos:", err);
+     });
   });
 </script>
-
 </body>
 </html>
