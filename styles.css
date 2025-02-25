@@ -28,13 +28,13 @@ label {
   margin-bottom: 8px;
 }
 
-/* Aplica margen a la derecha de los campos */
+/* Separación en los inputs */
 input,
 textarea,
 select {
   width: 100%;
   padding: 8px;
-  margin: 0 0 10px 0; /* (top=0 right=0 bottom=10 left=0) */
+  margin: 0 0 10px 0;
   border: 1px solid #607d8b;
   border-radius: 4px;
   background: #455a64;
@@ -73,7 +73,7 @@ button:hover {
   border-radius: 3px;
 }
 
-/* ========== Choices.js Tema Oscuro ========== */
+/* --------- CHOICES.JS (si tuvieras combos en datos.html) --------- */
 .choices {
   background-color: #455a64 !important;
   color: #fff;
@@ -86,7 +86,6 @@ button:hover {
 .choices__inner {
   background: #455a64 !important;
   border: none !important;
-  min-height: 44px;
   box-shadow: none !important;
 }
 
@@ -104,22 +103,18 @@ button:hover {
   background: #546e7a !important;
   border: 1px solid #607d8b !important;
 }
-
 .choices__list--dropdown .choices__item {
   color: #fff !important;
   background: #546e7a !important;
 }
-
 .choices__item--highlighted {
   background: #607d8b !important;
   color: #fff !important;
 }
-
 .choices__item--disabled {
   opacity: 0.6;
   color: #cfd8dc !important;
 }
-
 .is-focused .choices__inner,
 .is-open .choices__inner {
   border: 1px solid #90a4ae !important;

@@ -2,13 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Datos (Crear/Editar/Borrar)</title>
+  <title>Datos (Crear/Editar)</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
 
-  <!-- Tu CSS general -->
   <link rel="stylesheet" href="styles.css">
 
-  <!-- Choices.js (CSS + JS) para selects con búsqueda -->
+  <!-- Choices.js para los combos -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 </head>
@@ -22,14 +21,13 @@
       <input type="date" id="fecha" required />
     </label>
 
+    <!-- Tres combos con Choices.js -->
     <label>Origen:
       <select id="origenSelect" required></select>
     </label>
-
     <label>Cliente:
       <select id="clienteSelect" required></select>
     </label>
-
     <label>Cuenta:
       <select id="cuentaSelect" required></select>
     </label>
@@ -50,14 +48,11 @@
       <textarea id="observacion"></textarea>
     </label>
 
-    <!-- Tres botones: Guardar, Borrar y Añadir -->
+    <!-- Botones: Guardar, Borrar y Añadir -->
     <div style="margin-top:15px; display: flex; gap: 10px;">
-      <!-- Guardar -->
       <button type="submit" id="btnGuardar">Guardar</button>
-      <!-- Borrar -->
       <button type="button" id="btnBorrar" style="background-color: #b04632;">Borrar</button>
-      <!-- Añadir (pequeño, a la derecha) -->
-      <button type="button" id="btnAniadir" 
+      <button type="button" id="btnAbrirAdd" 
               style="margin-left:auto; font-size:12px; padding: 6px 10px; background-color:#5ba4cf;">
         Añadir
       </button>
@@ -66,82 +61,59 @@
 </div>
 
 <script>
-  // Trello
   const t = window.TrelloPowerUp.iframe();
 
   // Endpoints
   const GET_DESPLEGABLES_URL = 'https://n8n.nuuxia.com/webhook/goncebat-automation/getDesplegables';
-  const ADD_DESPLEGABLES_URL = 'https://n8n.nuuxia.com/webhook/goncebat-automation/addDesplegables';
   const ADD_FORMULARIO_URL   = 'https://n8n.nuuxia.com/webhook/goncebat-automation/addFormulario';
 
-  // Arrays originales
   let originalOrigenes = [];
   let originalClientes = [];
   let originalCuentas  = [];
 
-  // Choices instances
   let origenChoices, clienteChoices, cuentaChoices;
 
   document.addEventListener('DOMContentLoaded', async function() {
     try {
-      // 1) Consultar desplegables
+      // 1) Cargar combos de Origen/Cliente/Cuenta
       let resp = await fetch(GET_DESPLEGABLES_URL);
-      let data = await resp.json();
-      let desplegables = data[0] || {};
+      let data = await resp.json(); // { origenes, clientes, cuentas, comisiones }
 
-      originalOrigenes = desplegables.origenes   || [];
-      originalClientes = desplegables.clientes   || [];
-      originalCuentas  = desplegables.cuentas    || [];
+      originalOrigenes = data.origenes   || [];
+      originalClientes = data.clientes   || [];
+      originalCuentas  = data.cuentas    || [];
 
-      // Convertimos en { value, label }
-      let origenOptions = originalOrigenes.map(o => ({ value: o, label: o }));
-      let clienteOptions= originalClientes.map(c => ({ value: c, label: c }));
-      let cuentaOptions = originalCuentas.map(u => ({ value: u, label: u }));
+      // Convertir a {value, label}
+      let origenOps   = originalOrigenes.map(o => ({ value: o, label: o }));
+      let clienteOps  = originalClientes.map(c => ({ value: c, label: c }));
+      let cuentaOps   = originalCuentas.map(u => ({ value: u, label: u }));
 
-      // 2) Inicializar Choices
+      // Iniciar Choices
       origenChoices = new Choices('#origenSelect', {
-        placeholderValue: 'Selecciona o escribe...',
-        searchPlaceholderValue: 'Buscar Origen...',
-        removeItemButton: false,
-        noResultsText: 'No hay coincidencias',
-        noChoicesText: 'No hay datos',
-        addItemText: (value) => `Presiona Enter para agregar: "${value}"`,
+        placeholderValue: 'Origen',
         shouldSort: false,
         allowCustomValues: true,
-        searchEnabled: true,
-        duplicateItemsAllowed: false
+        searchEnabled: true
       });
-      origenChoices.setChoices(origenOptions, 'value', 'label', false);
+      origenChoices.setChoices(origenOps, 'value', 'label', false);
 
       clienteChoices = new Choices('#clienteSelect', {
-        placeholderValue: 'Selecciona o escribe...',
-        searchPlaceholderValue: 'Buscar Cliente...',
-        removeItemButton: false,
-        noResultsText: 'No hay coincidencias',
-        noChoicesText: 'No hay datos',
-        addItemText: (value) => `Presiona Enter para agregar: "${value}"`,
+        placeholderValue: 'Cliente',
         shouldSort: false,
         allowCustomValues: true,
-        searchEnabled: true,
-        duplicateItemsAllowed: false
+        searchEnabled: true
       });
-      clienteChoices.setChoices(clienteOptions, 'value', 'label', false);
+      clienteChoices.setChoices(clienteOps, 'value', 'label', false);
 
       cuentaChoices = new Choices('#cuentaSelect', {
-        placeholderValue: 'Selecciona o escribe...',
-        searchPlaceholderValue: 'Buscar Cuenta...',
-        removeItemButton: false,
-        noResultsText: 'No hay coincidencias',
-        noChoicesText: 'No hay datos',
-        addItemText: (value) => `Presiona Enter para agregar: "${value}"`,
+        placeholderValue: 'Cuenta',
         shouldSort: false,
         allowCustomValues: true,
-        searchEnabled: true,
-        duplicateItemsAllowed: false
+        searchEnabled: true
       });
-      cuentaChoices.setChoices(cuentaOptions, 'value', 'label', false);
+      cuentaChoices.setChoices(cuentaOps, 'value', 'label', false);
 
-      // 3) Cargar datos guardados en Trello
+      // 2) Cargar datos guardados en Trello (por si ya existían)
       let datos = await t.get('card', 'shared', 'datos', {});
       if (datos.fecha)       document.getElementById("fecha").value = datos.fecha;
       if (datos.palabras)    document.getElementById("palabras").value = datos.palabras;
@@ -149,22 +121,21 @@
       if (datos.egreso)      document.getElementById("egreso").value = datos.egreso;
       if (datos.clientePago) document.getElementById("clientePago").value = datos.clientePago;
       if (datos.observacion) document.getElementById("observacion").value = datos.observacion;
-
-      // Seleccionar valores en los combos si había algo
+      
+      // Seleccionar combos si había algo
       if (datos.origen)  origenChoices.setChoiceByValue(datos.origen);
       if (datos.cliente) clienteChoices.setChoiceByValue(datos.cliente);
       if (datos.cuenta)  cuentaChoices.setChoiceByValue(datos.cuenta);
 
     } catch (err) {
-      console.error("Error al obtener desplegables:", err);
+      console.error("Error al cargar combos:", err);
     }
   });
 
-  // ===== BOTÓN GUARDAR => envía TODOS los campos a addFormulario =====
-  document.getElementById("dataForm").addEventListener("submit", function(event) {
-    event.preventDefault();
+  // BOTÓN GUARDAR => Enviar todos los campos a addFormulario
+  document.getElementById("dataForm").addEventListener("submit", function(e) {
+    e.preventDefault();
 
-    // Tomamos todos los campos
     let newData = {
       fecha:       document.getElementById("fecha").value,
       origen:      origenChoices.getValue(true),
@@ -177,14 +148,14 @@
       observacion: document.getElementById("observacion").value
     };
 
-    // 1) Guardar en Trello
     t.card('id')
      .then(function(cardData) {
        newData.cardId = cardData.id;
+       // Guardar en Trello
        return t.set('card', 'shared', 'datos', newData);
      })
      .then(function() {
-       // 2) Enviar a addFormulario
+       // Llamar a addFormulario
        return fetch(ADD_FORMULARIO_URL, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
@@ -200,25 +171,13 @@
      });
   });
 
-  // ===== BOTÓN BORRAR =====
+  // BOTÓN BORRAR
   document.getElementById("btnBorrar").addEventListener("click", function() {
     t.card('id').then(function(cardData) {
-      var bodyToDelete = {
-        cardId: cardData.id,
-        action: 'delete'
-      };
-
       // Borrar en Trello
       return t.set('card', 'shared', 'datos', {})
        .then(function() {
-         // (Opcional) Avisar a addDesplegables
-         return fetch(ADD_DESPLEGABLES_URL, {
-           method: "POST",
-           headers: { "Content-Type": "application/json" },
-           body: JSON.stringify(bodyToDelete)
-         });
-       })
-       .then(function() {
+         // Cerrar
          t.closePopup();
        })
        .catch(function(err) {
@@ -228,60 +187,13 @@
     });
   });
 
-  // ===== BOTÓN AÑADIR => sólo agrega los nuevos Origen/Cliente/Cuenta a addDesplegables =====
-  document.getElementById("btnAniadir").addEventListener("click", function() {
-    let origenSeleccionado  = origenChoices.getValue(true);
-    let clienteSeleccionado = clienteChoices.getValue(true);
-    let cuentaSeleccionada  = cuentaChoices.getValue(true);
-
-    let promises = [];
-
-    // Si es nuevo, lo enviamos
-    if (origenSeleccionado && !originalOrigenes.includes(origenSeleccionado)) {
-      promises.push(fetch(ADD_DESPLEGABLES_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newOrigen: origenSeleccionado })
-      }));
-    }
-    if (clienteSeleccionado && !originalClientes.includes(clienteSeleccionado)) {
-      promises.push(fetch(ADD_DESPLEGABLES_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newCliente: clienteSeleccionado })
-      }));
-    }
-    if (cuentaSeleccionada && !originalCuentas.includes(cuentaSeleccionada)) {
-      promises.push(fetch(ADD_DESPLEGABLES_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newCuenta: cuentaSeleccionada })
-      }));
-    }
-
-    if (promises.length === 0) {
-      alert("No hay ningún valor nuevo que añadir.");
-      return;
-    }
-
-    Promise.all(promises)
-      .then(() => {
-        alert("¡Valores añadidos correctamente a Desplegables!");
-        // Actualizamos arrays originales para no volver a enviarlos
-        if (origenSeleccionado && !originalOrigenes.includes(origenSeleccionado)) {
-          originalOrigenes.push(origenSeleccionado);
-        }
-        if (clienteSeleccionado && !originalClientes.includes(clienteSeleccionado)) {
-          originalClientes.push(clienteSeleccionado);
-        }
-        if (cuentaSeleccionada && !originalCuentas.includes(cuentaSeleccionada)) {
-          originalCuentas.push(cuentaSeleccionada);
-        }
-      })
-      .catch(err => {
-        console.error("Error al añadir valores:", err);
-        alert("Error al añadir. Revisa la consola.");
-      });
+  // BOTÓN "Añadir" => abrir la pantallita popupAddDesplegables.html
+  document.getElementById("btnAbrirAdd").addEventListener("click", function() {
+    t.popup({
+      title: "Nuevos Desplegables",
+      url: t.signUrl('popupAddDesplegables.html'), 
+      height: 350
+    });
   });
 </script>
 

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Añadir Desplegables</title>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+  <h2>Añadir Nuevos Desplegables</h2>
+  
+  <label>Nuevo Origen:
+    <input type="text" id="nuevoOrigen" placeholder="(Opcional)" />
+  </label>
+  <label>Nuevo Cliente:
+    <input type="text" id="nuevoCliente" placeholder="(Opcional)" />
+  </label>
+  <label>Nuevo Cuenta:
+    <input type="text" id="nuevoCuenta" placeholder="(Opcional)" />
+  </label>
+
+  <div style="display:flex; gap:10px; margin-top:10px;">
+    <button type="button" id="btnCancelar" style="background-color:#b04632;">Cancelar</button>
+    <button type="button" id="btnAniadir" style="margin-left:auto;">Añadir</button>
+  </div>
+</div>
+
+<script>
+  const t = window.TrelloPowerUp.iframe();
+  const ADD_DESPLEGABLES_URL = 'https://n8n.nuuxia.com/webhook/goncebat-automation/addDesplegables';
+
+  // Botón Cancelar => simplemente cierra popup
+  document.getElementById("btnCancelar").addEventListener("click", function() {
+    t.closePopup();
+  });
+
+  // Botón Añadir => POST a addDesplegables con newOrigen, newCliente, newCuenta si no están vacíos
+  document.getElementById("btnAniadir").addEventListener("click", async function() {
+    const nuevoOrigen  = document.getElementById("nuevoOrigen").value.trim();
+    const nuevoCliente = document.getElementById("nuevoCliente").value.trim();
+    const nuevoCuenta  = document.getElementById("nuevoCuenta").value.trim();
+
+    // Si todos están vacíos, no hacemos nada
+    if (!nuevoOrigen && !nuevoCliente && !nuevoCuenta) {
+      alert("No hay datos para añadir.");
+      return;
+    }
+
+    // Construimos el body según lo que venga
+    let bodyToSend = {};
+    if (nuevoOrigen)  bodyToSend.newOrigen  = nuevoOrigen;
+    if (nuevoCliente) bodyToSend.newCliente = nuevoCliente;
+    if (nuevoCuenta)  bodyToSend.newCuenta  = nuevoCuenta;
+
+    try {
+      let resp = await fetch(ADD_DESPLEGABLES_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyToSend)
+      });
+      if (!resp.ok) {
+        throw new Error("Respuesta no OK: " + resp.statusText);
+      }
+      alert("¡Valores añadidos correctamente!");
+      t.closePopup();
+    } catch (err) {
+      console.error("Error al añadir:", err);
+      alert("Error al añadir. Revisa consola.");
+    }
+  });
+</script>
+
+</body>
+</html>
